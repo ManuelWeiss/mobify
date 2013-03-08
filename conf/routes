@@ -1,0 +1,16 @@
+GET     /                           controllers.Application.index
+
+GET		/get-counter				controllers.Application.get_counter
+POST	/increment-counter			controllers.Application.increment_counter
+
+GET		/cached-timestamp			controllers.Application.cached_timestamp
+
+POST	/echo						controllers.Application.echo
+
+PUT		/kvstore					controllers.Application.kvstore_put
+POST	/kvstore					controllers.Application.kvstore_post
+GET		/kvstore/:id				controllers.Application.kvstore_get(id: String)
+GET		/list						controllers.Application.list
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
