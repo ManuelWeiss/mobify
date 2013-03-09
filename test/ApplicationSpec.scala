@@ -16,18 +16,33 @@ class ApplicationSpec extends Specification {
     
     "send 404 on a bad request" in {
       running(FakeApplication()) {
-        route(FakeRequest(GET, "/boum")) must beNone        
+        route(FakeRequest(GET, "/inexistant_path")) must beNone        
       }
     }
     
-    "render the index page" in {
+    "GET on /" in {
       running(FakeApplication()) {
         val home = route(FakeRequest(GET, "/")).get
         
         status(home) must equalTo(OK)
-        contentType(home) must beSome.which(_ == "text/html")
-        contentAsString(home) must contain ("Your new application is ready.")
+        contentType(home) must beSome.which(_ == "text/plain")
+        contentAsString(home) must contain ("Domo arigato, Mr Roboto.")
       }
     }
+
+    "GET on /get-counter" in {
+      running(FakeApplication()) {
+        val counter = route(FakeRequest(GET, "/get-counter")).get
+        
+        status(counter) must equalTo(OK)
+        contentType(counter) must beSome.which(_ == "text/plain")
+        val value = contentAsString(counter)
+        header("X-HELLO-MOBIFY-ROBOT", counter) must beSome.which(_ == "hi")
+      }
+    }
+
+
+
+
   }
 }

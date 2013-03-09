@@ -17,16 +17,14 @@ object Application extends Controller {
     Ok("Domo arigato, Mr Roboto.")
   }
   
-  // mit Redis ersetzen
   def get_counter = Action {
     val counter : Option[Any] = Cache.get("counter")
     counter match {
-    	case Some(c) => Ok(c.toString)
-    	case None    => Ok("0")
+    	case Some(c) => Ok(c.toString).withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
+    	case None    => Ok("0").withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
     }
   }
   
-  // mit Redis ersetzen
   def increment_counter = Action {
     val counter : Option[Any] = Cache.get("counter")
     counter match {
@@ -48,7 +46,7 @@ object Application extends Controller {
 
   def cached_timestamp = Action {
   	val timestamp : Long = Cache.getOrElse[Long]("cached_timestamp", 15) { System.currentTimeMillis / 1000 }
-    Ok(timestamp.toString).withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
+    Ok(timestamp.toString)
   }
 
 
