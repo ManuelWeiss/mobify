@@ -1,16 +1,16 @@
-GET     /                           controllers.Application.index
+GET     /                           controllers.Root.index
 
-GET		/get-counter				controllers.Application.get_counter
-POST	/increment-counter			controllers.Application.increment_counter
+GET		/get-counter				controllers.Counter.get
+POST	/increment-counter			controllers.Counter.increment
 
-GET		/cached-timestamp			controllers.Application.cached_timestamp
+GET		/cached-timestamp			controllers.CachedTimestamp.get
 
-POST	/echo						controllers.Application.echo
+POST	/echo						controllers.Echo.call
 
-PUT		/kvstore					controllers.Application.kvstore_put
-POST	/kvstore					controllers.Application.kvstore_post
-GET		/kvstore/:id				controllers.Application.kvstore_get(id: String)
-GET		/list						controllers.Application.list
+PUT		/kvstore					controllers.PriorityQueue.insert
+POST	/kvstore					controllers.PriorityQueue.pop
+GET		/kvstore/:id				controllers.PriorityQueue.get(id: String)
+GET		/list						controllers.PriorityQueue.list
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
