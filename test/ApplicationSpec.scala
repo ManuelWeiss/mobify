@@ -24,7 +24,7 @@ class ApplicationSpec extends Specification {
       running(FakeApplication()) {
         val home = route(FakeRequest(GET, "/")).get
         
-        status(home) must equalTo(OK)
+        status(home) must beEqualTo(OK)
         contentType(home) must beSome.which(_ == "text/plain")
         contentAsString(home) must contain ("Domo arigato, Mr Roboto.")
       }
@@ -32,16 +32,31 @@ class ApplicationSpec extends Specification {
 
     "GET on /get-counter" in {
       running(FakeApplication()) {
-        val counter = route(FakeRequest(GET, "/get-counter")).get
-        
-        status(counter) must equalTo(OK)
-        contentType(counter) must beSome.which(_ == "text/plain")
-        val value = contentAsString(counter)
-        header("X-HELLO-MOBIFY-ROBOT", counter) must beSome.which(_ == "hi")
+        val response = route(FakeRequest(GET, "/get-counter")).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "text/plain")
+        val value = contentAsString(response).toInt
+        header("X-HELLO-MOBIFY-ROBOT", response) must beSome.which(_ == "hi")
       }
     }
 
-
+    "GET on /cached-timestamp" in {
+      running(FakeApplication()) {
+        var response = route(FakeRequest(GET, "/cached-timestamp")).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "text/plain")
+        val value = contentAsString(response).toInt
+        value must beGreaterThan(1362795703)
+        // get another one
+        response = route(FakeRequest(GET, "/cached-timestamp")).get
+        var value2 = contentAsString(response).toInt
+        value2 must beEqualTo(value)
+        Thread.sleep(16)
+        response = route(FakeRequest(GET, "/cached-timestamp")).get
+        value2 = contentAsString(response).toInt
+        value2 must beGreaterThan(value)
+      }
+    }
 
 
   }
