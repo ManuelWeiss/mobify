@@ -18,16 +18,14 @@ object Application extends Controller {
   }
   
   def get_counter = Action {
-    val counter : Option[Any] = Cache.get("counter")
-    counter match {
-    	case Some(c) => Ok(c.toString).withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
-    	case None    => Ok("0").withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
-    }
+    Ok(Cache.get("counter") match {
+    	case Some(c) => c.toString
+    	case None    => "0"
+    }).withHeaders("X-HELLO-MOBIFY-ROBOT" -> "hi")
   }
   
   def increment_counter = Action {
-    val counter : Option[Any] = Cache.get("counter")
-    counter match {
+    Cache.get("counter") match {
     	case Some(c) => {
     		c match {
     			case s : Int => {
