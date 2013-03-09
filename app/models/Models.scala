@@ -9,7 +9,7 @@ import play.api.libs.json._
 import anorm._
 import anorm.SqlParser._
 
-case class Item(id: String, data: String, priority: Long, inserted: Pk[Long] = NotAssigned)
+case class Item(id: String, data: String, priority: Long)
 
 object Item {
   
@@ -34,9 +34,8 @@ object Item {
   val simple = {
     str("items.id") ~
     str("items.data") ~
-    get[Long]("items.priority") ~
-    get[Pk[Long]]("items.inserted") map {
-      case id~data~priority~inserted => Item(id, data, priority, inserted)
+    get[Long]("items.priority") map {
+      case id~data~priority => Item(id, data, priority)
     }
   }
   
@@ -90,15 +89,14 @@ object Item {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          insert into items values (
-            {id}, {data}, {priority}, {inserted}
-          )
+          insert into items 
+          (id, data, priority)
+          values ( {id}, {data}, {priority} )
         """
       ).on(
         'id       -> item.id,
         'data     -> item.data,
-        'priority -> item.priority,
-        'inserted -> item.inserted
+        'priority -> item.priority
       ).executeUpdate()
     }
   }
