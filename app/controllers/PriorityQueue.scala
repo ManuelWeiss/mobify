@@ -11,6 +11,7 @@ import models._
 // - PUT: insert new item into queue, expects Json-formatted body like this:
 //         {"id": "abcd12345", "data": "sample-value", "priority": 0}
 // - POST: returns the item with the highest priority (FIFO) and removes it from the queue
+// (see Models.scala for Item class)
 object PriorityQueue extends Controller {
 
   def insert = Action(parse.json) {
