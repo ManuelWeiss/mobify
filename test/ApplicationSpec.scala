@@ -5,7 +5,6 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import play.api.test.FakeApplication
 
 class ApplicationSpec extends Specification {
 
@@ -67,6 +66,12 @@ class ApplicationSpec extends Specification {
     }
   }
 
-
+  "echo" in {
+    running(FakeApplication()) {
+      val response = route(FakeRequest(POST, controllers.routes.Echo.call().url).withFormUrlEncodedBody("foo" -> "bar")).get
+      status(response) must beEqualTo(OK)
+      contentType(response) must beSome.which(_ == "application/json")
+      contentAsString(response) mustEqual "{\"foo\":[\"bar\"]}"
+    }
   }
 }
