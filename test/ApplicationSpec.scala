@@ -4,15 +4,15 @@ import org.specs2.mutable._
 
 import play.api.test._
 import play.api.test.Helpers._
-import play.api.test.FakeApplication
+import play.api.libs.json._
 
 class ApplicationSpec extends Specification {
 
   "Application" should {
 
-    "send 404 on a bad request" in {
+    "send 404 on inexistent path" in {
       running(FakeApplication()) {
-        route(FakeRequest(GET, "/inexistant_path")) must beNone
+        route(FakeRequest(GET, "/inexistent_path")) must beNone
       }
     }
 
@@ -75,14 +75,91 @@ class ApplicationSpec extends Specification {
         value2 must beGreaterThan(value)
       }
     }
-  }
 
-  "echo" in {
-    running(FakeApplication()) {
-      val response = route(FakeRequest(POST, controllers.routes.Echo.call().url).withFormUrlEncodedBody("foo" -> "bar")).get
-      status(response) must beEqualTo(OK)
-      contentType(response) must beSome.which(_ == "application/json")
-      contentAsString(response) mustEqual "{\"foo\":[\"bar\"]}"
+    "echo" in {
+      running(FakeApplication()) {
+        val response = route(FakeRequest(POST, controllers.routes.Echo.call().url).withFormUrlEncodedBody("foo" -> "bar")).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "application/json")
+        contentAsString(response) mustEqual "{\"foo\":[\"bar\"]}"
+      }
+    }
+
+    "kvstore" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        // try to get not existing id
+        var response = route(FakeRequest(GET, controllers.routes.PriorityQueue.get("abc").url)).get
+
+        status(response) must beEqualTo(BAD_REQUEST)
+        contentType(response) must beSome.which(_ == "text/plain")
+        contentAsString(response) mustEqual "identifier does not exist"
+
+        // now put some items into queue
+        response = route(
+                    FakeRequest(PUT, controllers.routes.PriorityQueue.insert().url)
+                    .withJsonBody(JsObject(Seq(
+                      "id"       -> JsString("id01"),
+                      "data"     -> JsString("data01"),
+                      "priority" -> JsNumber(5)
+                    )))
+                  ).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "text/plain")
+        response = route(
+          FakeRequest(PUT, controllers.routes.PriorityQueue.insert().url)
+            .withJsonBody(JsObject(Seq(
+            "id"       -> JsString("id02"),
+            "data"     -> JsString("data02"),
+            "priority" -> JsNumber(1)
+          )))
+        ).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "text/plain")
+        response = route(
+          FakeRequest(PUT, controllers.routes.PriorityQueue.insert().url)
+            .withJsonBody(JsObject(Seq(
+            "id"       -> JsString("id03"),
+            "data"     -> JsString("data03"),
+            "priority" -> JsNumber(5)
+          )))
+        ).get
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "text/plain")
+
+        // try to get one via id
+        response = route(FakeRequest(GET, controllers.routes.PriorityQueue.get("id01").url)).get
+
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "application/json")
+        contentAsString(response) mustEqual "{\"data\":\"data01\"}"
+
+        response = route(FakeRequest(GET, controllers.routes.PriorityQueue.list().url)).get
+        Console.println(contentAsString(response))
+
+        // now pop them - we expect them in this order (by priority, FIFO):
+        // id01, id03, id02
+        response = route(FakeRequest(POST, controllers.routes.PriorityQueue.pop().url)).get
+
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "application/json")
+        contentAsString(response) mustEqual "{\"data\":\"data01\"}"
+
+        response = route(FakeRequest(POST, controllers.routes.PriorityQueue.pop().url)).get
+
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "application/json")
+        contentAsString(response) mustEqual "{\"data\":\"data03\"}"
+
+        response = route(FakeRequest(POST, controllers.routes.PriorityQueue.pop().url)).get
+
+        status(response) must beEqualTo(OK)
+        contentType(response) must beSome.which(_ == "application/json")
+        contentAsString(response) mustEqual "{\"data\":\"data02\"}"
+
+        response = route(FakeRequest(GET, controllers.routes.PriorityQueue.list().url)).get
+        Console.println(contentAsString(response))
+
+      }
     }
   }
 }
