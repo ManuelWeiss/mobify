@@ -16,7 +16,7 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "Domo arigato" in {
+    "say Domo arigato" in {
       running(FakeApplication()) {
         val response = route(FakeRequest(GET, controllers.routes.Root.index().url)).get
 
@@ -26,7 +26,7 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "counter" in {
+    "implement a counter" in {
       running(FakeApplication()) {
         var response = route(FakeRequest(GET, controllers.routes.Counter.get().url)).get
 
@@ -52,7 +52,7 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "cached-timestamp" in {
+    "implement a cached-timestamp" in {
       running(FakeApplication()) {
         var response = route(FakeRequest(GET, controllers.routes.CachedTimestamp.get().url)).get
 
@@ -76,7 +76,7 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "echo" in {
+    "echo input" in {
       running(FakeApplication()) {
         val response = route(FakeRequest(POST, controllers.routes.Echo.call().url).withFormUrlEncodedBody("foo" -> "bar")).get
         status(response) must beEqualTo(OK)
@@ -85,7 +85,7 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "kvstore" in {
+    "implement kvstore as a priority queue" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         // try to get not existing id
         var response = route(FakeRequest(GET, controllers.routes.PriorityQueue.get("abc").url)).get
@@ -133,9 +133,6 @@ class ApplicationSpec extends Specification {
         contentType(response) must beSome.which(_ == "application/json")
         contentAsString(response) mustEqual "{\"data\":\"data01\"}"
 
-        response = route(FakeRequest(GET, controllers.routes.PriorityQueue.list().url)).get
-        Console.println(contentAsString(response))
-
         // now pop them - we expect them in this order (by priority, FIFO):
         // id01, id03, id02
         response = route(FakeRequest(POST, controllers.routes.PriorityQueue.pop().url)).get
@@ -155,9 +152,6 @@ class ApplicationSpec extends Specification {
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "application/json")
         contentAsString(response) mustEqual "{\"data\":\"data02\"}"
-
-        response = route(FakeRequest(GET, controllers.routes.PriorityQueue.list().url)).get
-        Console.println(contentAsString(response))
 
       }
     }
