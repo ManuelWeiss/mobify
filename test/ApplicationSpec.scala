@@ -18,7 +18,7 @@ class ApplicationSpec extends Specification {
 
     "Domo arigato" in {
       running(FakeApplication()) {
-        val response = route(FakeRequest(GET, "/")).get
+        val response = route(FakeRequest(GET, controllers.routes.Root.index().url)).get
 
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "text/plain")
@@ -28,18 +28,23 @@ class ApplicationSpec extends Specification {
 
     "counter" in {
       running(FakeApplication()) {
-        var response = route(FakeRequest(GET, "/get-counter")).get
+        var response = route(FakeRequest(GET, controllers.routes.Counter.get().url)).get
+
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "text/plain")
         contentAsString(response).toInt mustEqual 0
         header("X-HELLO-MOBIFY-ROBOT", response) must beSome.which(_ == "hi")
+
         // now increment via POST
-        response = route(FakeRequest(POST, "/increment-counter")).get
+        response = route(FakeRequest(POST, controllers.routes.Counter.increment().url)).get
+
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "text/plain")
         contentAsString(response) mustEqual ""
+
         // check new value
-        response = route(FakeRequest(GET, "/get-counter")).get
+        response = route(FakeRequest(GET, controllers.routes.Counter.get().url)).get
+
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "text/plain")
         contentAsString(response).toInt mustEqual 1
@@ -47,19 +52,25 @@ class ApplicationSpec extends Specification {
       }
     }
 
-    "GET on /cached-timestamp" in {
+    "cached-timestamp" in {
       running(FakeApplication()) {
-        var response = route(FakeRequest(GET, "/cached-timestamp")).get
+        var response = route(FakeRequest(GET, controllers.routes.CachedTimestamp.get().url)).get
+
         status(response) must beEqualTo(OK)
         contentType(response) must beSome.which(_ == "text/plain")
         val value = contentAsString(response).toInt
         value must beGreaterThan(1362916989)  // 2013-03-10
+
         // get another one
-        response = route(FakeRequest(GET, "/cached-timestamp")).get
+        response = route(FakeRequest(GET, controllers.routes.CachedTimestamp.get().url)).get
+
         var value2 = contentAsString(response).toInt
         value2 mustEqual value
+
+        // now wait for a while to get a new one
         Thread.sleep(16 * 1000)
-        response = route(FakeRequest(GET, "/cached-timestamp")).get
+        response = route(FakeRequest(GET, controllers.routes.CachedTimestamp.get().url)).get
+
         value2 = contentAsString(response).toInt
         value2 must beGreaterThan(value)
       }
