@@ -7,6 +7,23 @@ import play.api.libs.json._
 import anorm._
 import anorm.SqlParser._
 
+object PersistentCounter {
+  def get: Long = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select currval('counter')").as(scalar[Long].single)
+    }
+  }
+  def increment: Long = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select nextval('counter')").as(scalar[Long].single)
+    }
+  }
+}
+
+// Item represents an entry in the priority queue
+// which persists as a SQL table (see conf/evolutions.default/1.sql)
 case class Item(id: String, data: String, priority: Long)
 
 object Item {
