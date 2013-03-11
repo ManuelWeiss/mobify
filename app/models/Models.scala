@@ -12,6 +12,9 @@ object PersistentCounter {
     DB.withConnection {
       implicit connection =>
         SQL("select currval('counter')").as(scalar[Long].single)
+          // on Postgres, only the following works correctly
+          // (but unfortunately, this doesn't work on the default H2 DB):
+//        SQL("select last_value from counter").as(scalar[Long].single)
     }
   }
   def increment: Long = {
